@@ -9,6 +9,14 @@ namespace Path_Planning_Algorithms.Maps
 {
     public class Map : ICloneable
     {
+        public static readonly double[] PERCENTAGES = {
+            .05,
+            .10,
+            .20,
+            .30,
+            .50
+        };
+
         private Map(int cols, int rows, double per, 
             int obsCols, int obsRows)
         {

@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using System.Data;
 using System.Data.OleDb;
-
+using System.Threading;
 using System.Windows.Forms;
 
 using Path_Planning_Algorithms.Maps;
+using static Path_Planning_Algorithms.Algorithms.Utility;
 using MathNet.Numerics.Statistics;
 
 namespace Path_Planning_Algorithms.Algorithms
 {
-    public class Stats
+    public class Stats : ICloneable
     {
         public AgentType Type { get; private set; }
         public Map[] Maps { get; private set; }
@@ -38,8 +38,13 @@ namespace Path_Planning_Algorithms.Algorithms
         public Tuple<double, double> CI_Heading { get; private set; }
         public Tuple<double, double> CI_Time { get; private set; }
         public List<Agent> Agents { get; private set; }
+        private ManualResetEvent ResetEvent;
+        private DateTime Now;
 
-        private DateTime time;
+        private Stats()
+        {
+            //Used for cloning purposes
+        }
 
         public Stats(Map[] m, AgentType a, DateTime time)
         {
@@ -50,7 +55,20 @@ namespace Path_Planning_Algorithms.Algorithms
 
             Maps = m;
             Type = a;
-            this.time = time;
+            Now = time;
+        }
+
+        public Stats(Map[] map, AgentType type, ManualResetEvent manualResetEvent, DateTime now)
+        {
+            Maps = map;
+            Type = type;
+            ResetEvent = manualResetEvent;
+            Now = now;
+        }
+
+        internal void ThreadPoolCallback(object state)
+        {
+            CalcStats();
         }
 
         public void CalcStats()
@@ -62,9 +80,11 @@ namespace Path_Planning_Algorithms.Algorithms
             Agents = new List<Agent>();
 
             Agent agent = null;
-            
+
+            int count = 1;
             foreach (Map map in Maps)
             {
+                Console.WriteLine($"Now Processing {Type} {Maps[0].Percentage * 100}%: {count}");
                 agent = new Agent(Type, map);
                 agent.TraverseMap();
                 Lengths.Add(agent.Length);
@@ -72,9 +92,11 @@ namespace Path_Planning_Algorithms.Algorithms
                 Headings.Add(agent.Headings);
                 Times.Add(agent.Time);
                 Agents.Add(agent);
+                count++;
             }
             
-            //Calculate the correlation coeffiCI_ent between the heading changes and degrees using the pearson method
+            //Calculate the correlation coefficient between the heading changes and degrees
+            //This uses the spearman method to adjust for variability in populations
             CC_DegreesHeadings = Correlation.Spearman(Degrees, Headings);
 
             Console.WriteLine("Now Calculating Means...");
@@ -119,7 +141,7 @@ namespace Path_Planning_Algorithms.Algorithms
                 comm.CommandType = CommandType.Text;
                 comm.Connection = conn;
                 comm.CommandText = "INSERT INTO Table_Stats"
-                    + " ([DateRan],[Algorithm],[Percentage],"
+                    + "([DateRan],[Algorithm],[Percentage],"
                     + "[Mean_Length],[MeanHChanges],[Mean_Degree],[MeanTime],"
                     + "[MedianLength],[MedianHChanges],[MedianDegrees],[MedianTime],"
                     + "[DeviantLength],[DeviantHChanges],[DeviantDegrees],[DeviantTime],"
@@ -134,7 +156,7 @@ namespace Path_Planning_Algorithms.Algorithms
                     + "@cul,@cuh,@cud,@cut,@ccd);";
 
                 //Add the parameters
-                comm.Parameters.AddWithValue("@dat", time);
+                comm.Parameters.AddWithValue("@dat", Now);
                 comm.Parameters.AddWithValue("@alg", Type.ToString());
                 comm.Parameters.AddWithValue("@per", Maps[0].Percentage);
                 comm.Parameters.AddWithValue("@mnl", Math.Round(Mean_Length, 4));
@@ -225,6 +247,38 @@ namespace Path_Planning_Algorithms.Algorithms
             sb.AppendLine($"\t Traversal Time: [{Math.Round(CI_Time.Item1, 4)} -> {Math.Round(CI_Time.Item2, 4)}]");
 
             return sb.ToString();
+        }
+
+        public object Clone()
+        {
+            Stats stats = new Stats();
+
+            stats.Agents = (List<Agent>)CopyListOfObjects(Agents);
+            stats.CC_DegreesHeadings = CC_DegreesHeadings;
+            stats.CI_Degree = CopyPair(CI_Degree);
+            stats.CI_Heading = CopyPair(CI_Heading);
+            stats.CI_Length = CopyPair(CI_Length);
+            stats.CI_Time = CopyPair(CI_Time);
+            stats.Degrees = (List<double>)CopyListOfPrimitives(Degrees);
+            stats.Headings = (List<double>)CopyListOfPrimitives(Headings);
+            stats.Lengths = (List<double>)CopyListOfPrimitives(Lengths);
+            stats.Maps = (Map[])CopyListOfObjects(Maps);
+            stats.Mean_Degree = Mean_Degree;
+            stats.Mean_Heading = Mean_Heading;
+            stats.Mean_Length = Mean_Length;
+            stats.Mean_Time = Mean_Time;
+            stats.Median_Degree = Median_Degree;
+            stats.Median_Heading = Median_Heading;
+            stats.Median_Length = Median_Length;
+            stats.Median_Time = Median_Time;
+            stats.StdDev_Degree = StdDev_Degree;
+            stats.StdDev_Heading = StdDev_Heading;
+            stats.StdDev_Length = StdDev_Length;
+            stats.StdDev_Time = StdDev_Time;
+            stats.Times = (List<double>)CopyListOfPrimitives(Times);
+            stats.Type = Type;
+
+            return stats;
         }
     }
 }

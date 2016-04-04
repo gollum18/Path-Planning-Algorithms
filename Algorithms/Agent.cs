@@ -5,14 +5,14 @@ using System.Diagnostics;
 
 using Path_Planning_Algorithms.Maps;
 using static Path_Planning_Algorithms.Algorithms.Geometry;
-
+using static Path_Planning_Algorithms.Algorithms.Utility;
 
 namespace Path_Planning_Algorithms.Algorithms
 {
     /// <summary>
     /// Agents are used to traverse the maps.
     /// </summary>
-    public class Agent
+    public class Agent : ICloneable
     {
         /// <summary>
         /// Contains all proterties and methods related to interacting with the map for this agent.
@@ -68,6 +68,11 @@ namespace Path_Planning_Algorithms.Algorithms
         /// The total degree of the path, measured as the sum of all angles created by heading changes.
         /// </summary>
         public double Degrees { get; private set; }
+
+        private Agent()
+        {
+            //Used for cloning purposes
+        }
 
         /// <summary>
         /// Creates an agent from an agent type, and a map.
@@ -354,8 +359,7 @@ namespace Path_Planning_Algorithms.Algorithms
                     {
                         continue;
                     }
-
-                    if (Map.IsValidCell(current.X + x, current.Y + y))
+                    else if (Map.IsValidCell(current.X + x, current.Y + y))
                     {
                         l.Add(new Cell(current.X + x, current.Y + y));
                     }
@@ -423,6 +427,23 @@ namespace Path_Planning_Algorithms.Algorithms
             sb.AppendLine($"\tPath Traversal Time: [{Time}ms]");
 
             return sb.ToString();
+        }
+
+        public object Clone()
+        {
+            Agent clone = new Agent();
+
+            clone.AgentType = AgentType;
+            clone.ClosedList = (List<Cell>)CopyListOfObjects(ClosedList);
+            clone.Degrees = Degrees;
+            clone.Headings = Headings;
+            clone.Length = Length;
+            clone.Map = (Map)Map.Clone();
+            clone.OpenList = new PriorityQueue<Cell>(OpenList);
+            clone.Path = (List<Cell>)CopyListOfObjects(Path);
+            clone.Time = Time;
+
+            return clone;
         }
     }
 }

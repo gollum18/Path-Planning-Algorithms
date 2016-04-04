@@ -91,10 +91,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.progressTraversal = new System.Windows.Forms.ProgressBar();
             this.label18 = new System.Windows.Forms.Label();
-            this.workerAStar = new System.ComponentModel.BackgroundWorker();
-            this.workerThetaStar = new System.ComponentModel.BackgroundWorker();
-            this.workerAStarPS = new System.ComponentModel.BackgroundWorker();
-            this.workerSThetaStar = new System.ComponentModel.BackgroundWorker();
+            this.TraversalWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.pictureCompare)).BeginInit();
             this.groupBox2.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -718,33 +715,12 @@
             this.label18.TabIndex = 22;
             this.label18.Text = "Traversal Progress:";
             // 
-            // workerAStar
+            // TraversalWorker
             // 
-            this.workerAStar.WorkerReportsProgress = true;
-            this.workerAStar.WorkerSupportsCancellation = true;
-            this.workerAStar.DoWork += new System.ComponentModel.DoWorkEventHandler(this.TraversalWorkerMethod);
-            this.workerAStar.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.TraversalWorkerCompleted);
-            // 
-            // workerThetaStar
-            // 
-            this.workerThetaStar.WorkerReportsProgress = true;
-            this.workerThetaStar.WorkerSupportsCancellation = true;
-            this.workerThetaStar.DoWork += new System.ComponentModel.DoWorkEventHandler(this.TraversalWorkerMethod);
-            this.workerThetaStar.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.TraversalWorkerCompleted);
-            // 
-            // workerAStarPS
-            // 
-            this.workerAStarPS.WorkerReportsProgress = true;
-            this.workerAStarPS.WorkerSupportsCancellation = true;
-            this.workerAStarPS.DoWork += new System.ComponentModel.DoWorkEventHandler(this.TraversalWorkerMethod);
-            this.workerAStarPS.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.TraversalWorkerCompleted);
-            // 
-            // workerSThetaStar
-            // 
-            this.workerSThetaStar.WorkerReportsProgress = true;
-            this.workerSThetaStar.WorkerSupportsCancellation = true;
-            this.workerSThetaStar.DoWork += new System.ComponentModel.DoWorkEventHandler(this.TraversalWorkerMethod);
-            this.workerSThetaStar.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.TraversalWorkerCompleted);
+            this.TraversalWorker.WorkerReportsProgress = true;
+            this.TraversalWorker.WorkerSupportsCancellation = true;
+            this.TraversalWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.TraversalWorkerMethod);
+            this.TraversalWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.TraversalWorkerCompleted);
             // 
             // TestForm
             // 
@@ -856,9 +832,6 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.ProgressBar progressTraversal;
         private System.Windows.Forms.Label label18;
-        private System.ComponentModel.BackgroundWorker workerAStar;
-        private System.ComponentModel.BackgroundWorker workerThetaStar;
-        private System.ComponentModel.BackgroundWorker workerAStarPS;
-        private System.ComponentModel.BackgroundWorker workerSThetaStar;
+        private System.ComponentModel.BackgroundWorker TraversalWorker;
     }
 }

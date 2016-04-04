@@ -1,27 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Path_Planning_Algorithms.Maps;
 
 namespace Path_Planning_Algorithms.Algorithms
 {
     public static class Utility
     {
-        public static Map[] CloneMapArray(Map[] array)
+        public static IList<T> CopyListOfPrimitives<T>(IList<T> list)
         {
-            Map[] clone = new Map[array.Count()];
+            IList<T> copy = new T[list.Count];
 
-            int i = 0;
-            foreach (Map map in array)
+            for (int i = 0; i < list.Count; i++)
             {
-                clone[i] = (Map)map.Clone();
-                i++;
+                copy[i] = list[i];
             }
 
-            return array;
-        } 
+            return copy;
+        }
+
+        public static IList<T> CopyListOfObjects<T>(IList<T> list) where T : ICloneable
+        {
+            IList<T> copy = new T[list.Count];
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                copy[i] = (T)list[i].Clone();
+            }
+
+            return copy;
+        }
+
+        public static Tuple<T1, T2> CopyPair<T1, T2>(Tuple<T1, T2> pair) =>
+            new Tuple<T1, T2>(pair.Item1, pair.Item2);
     }
 }

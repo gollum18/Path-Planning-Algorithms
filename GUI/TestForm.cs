@@ -15,10 +15,6 @@ namespace Path_Planning_Algorithms.GUI
     {
         private int Count;
 
-        private Map[] Maps;
-        private Stats[] Stats;
-        private DateTime Now;
-
         public static readonly Color PATH_ASTAR = Color.Red;
         public static readonly Color PATH_ASTARPS = Color.Green;
         public static readonly Color PATH_THETASTAR = Color.Blue;
@@ -31,59 +27,14 @@ namespace Path_Planning_Algorithms.GUI
 
         private void button1_Click(object sender, EventArgs e)
         {
-            btnRun.Enabled = false;
-            btnCancel.Enabled = true;
-
-            progressTraversal.Value = 0;
-            numCurrentMap.Enabled = false;
-
-            //set the max and min for map selector
-            numCurrentMap.Minimum = 0;
-            numCurrentMap.Maximum = numMaps.Value - 1;
-
-            Maps = new Map[(int)numMaps.Value];
-            Now = DateTime.Now;
-           
-            //Generate the maps
-            for (int i = 0; i < Maps.Count(); i++)
-            {
-                Maps[i] = Map.InstanceOf((int)numCols.Value, (int)numRows.Value, (double)numPercentage.Value, 
-                    (int)numObsCols.Value, (int)numRows.Value);
-            }
-
-            //Initialize the stat containers
-            Stats = new Stats[4];
-
-            Stats[0] = new Stats(CloneMapArray(Maps), AgentType.ASTAR, Now);
-            Stats[1] = new Stats(CloneMapArray(Maps), AgentType.ASTARPS, Now);
-            Stats[2] = new Stats(CloneMapArray(Maps), AgentType.THETASTAR, Now);
-            Stats[3] = new Stats(CloneMapArray(Maps), AgentType.STHETASTAR, Now);
-
-            //Trigger the background workers
-            workerAStar.RunWorkerAsync();
-            workerAStarPS.RunWorkerAsync();
-            workerThetaStar.RunWorkerAsync();
-            workerSThetaStar.RunWorkerAsync();
-
-            //Load the table in the second tab
-            table_StatsTableAdapter.Fill(algorithms_DataDataSet.Table_Stats);
+            //TODO: Do something
         }
 
         private void DrawMap (int index)
         {
             Bitmap image = new Bitmap((int)numCols.Value, (int)numRows.Value);
 
-            //Add the astar path
-            DrawHelper(image, Stats[0].Agents[index], PATH_ASTAR);
-
-            //Add the astarps path
-            DrawHelper(image, Stats[1].Agents[index], PATH_ASTARPS);
-
-            //Add the thetastar path
-            DrawHelper(image, Stats[2].Agents[index], PATH_THETASTAR);
-
-            //Add the sthetastar path
-            DrawHelper(image, Stats[3].Agents[index], PATH_STHETASTAR);
+            //TODO: Draw Something
 
             pictureCompare.BackgroundImage = image;
         }
@@ -122,26 +73,12 @@ namespace Path_Planning_Algorithms.GUI
 
         private void TraversalWorkerMethod(object sender, DoWorkEventArgs e)
         {
-            int sHash = sender.GetHashCode();
+            //TODO: Do Work
+        }
 
-            if (sHash == workerAStar.GetHashCode())
-            {
-                Stats[0].CalcStats();
-            }
-            else if (sHash == workerAStarPS.GetHashCode())
-            {
-                Stats[1].CalcStats();
-            }
-            else if (sHash == workerThetaStar.GetHashCode())
-            {
-                Stats[2].CalcStats();
-            }
-            else if (sHash == workerSThetaStar.GetHashCode())
-            {
-                Stats[3].CalcStats();
-            }
-
-            Invoke((EventHandler) delegate
+        private void Increment()
+        {
+            Invoke((EventHandler)delegate
             {
                 progressTraversal.Increment(25);
             });
@@ -161,28 +98,10 @@ namespace Path_Planning_Algorithms.GUI
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            if (workerAStar.IsBusy)
+            if (TraversalWorker.IsBusy)
             {
-                workerAStar.CancelAsync();
-                workerAStar.Dispose();
-            }
-
-            if (workerAStarPS.IsBusy)
-            {
-                workerAStarPS.CancelAsync();
-                workerAStarPS.Dispose();
-            }
-
-            if (workerThetaStar.IsBusy)
-            {
-                workerThetaStar.CancelAsync();
-                workerThetaStar.Dispose();
-            }
-
-            if (workerSThetaStar.IsBusy)
-            {
-                workerSThetaStar.CancelAsync();
-                workerSThetaStar.Dispose();
+                TraversalWorker.CancelAsync();
+                TraversalWorker.Dispose();
             }
 
             Count = 0;
