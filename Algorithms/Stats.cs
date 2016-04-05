@@ -133,6 +133,52 @@ namespace Path_Planning_Algorithms.Algorithms
         public Tuple<double, double> ConfidenceInterval(double mean, double StdDev_) =>
             Tuple.Create(mean - (1.96 * StdDev_), mean + (1.96 * StdDev_));
 
+        /// <summary>
+        /// Calculates the t-score for a repeated measures test.
+        /// </summary>
+        /// <param name="beforeScores">The scores before administering the test.</param>
+        /// <param name="afterScores">The scores after administering the test.</param>
+        /// <returns>T-Score for the repeated measure.</returns>
+        public static double RepeatedMeasuresTScore(List<double> beforeScores, List<double> afterScores)
+        {
+            if (beforeScores.Count != afterScores.Count)
+            {
+                throw new ArgumentException("ERROR: Statistical lists do not contain the same amount of samples!");
+            }
+
+            /**
+            * Variable Definitions:
+                M: Mean of the Difference Scores.
+                SS: Sum of Squared Difference Scores.
+                S2: The estimated population variance.
+                S2M: The estimated variance of the distribution of means.
+                SM: The estimated standard deviation of the distribution of means
+            **/
+            double M = 0, SS = 0, S2 = 0, S2M = 0, SM = 0;
+
+            //Step One: Calculate SS
+            for (int i = 0; i < beforeScores.Count; i++)
+            {
+                M += (beforeScores[i] - afterScores[i]);
+                SS += Math.Pow((beforeScores[i] - afterScores[i]), 2);
+            }
+
+            //Pre-Step: Calculate M
+            M /= beforeScores.Count;
+
+            //Step Two: Calculate S2
+            S2 = SS / (beforeScores.Count - 1);
+
+            //Step Three: Calculate S2M
+            S2M = S2 / beforeScores.Count;
+
+            //Step Four: Calculate SM
+            SM = Math.Sqrt(S2M);
+
+            //Step Five: Calculate the T-Score
+            return (M - 0) / SM;
+        }
+
         public void ToDatabase()
         {
             using (OleDbConnection conn = new OleDbConnection(Properties.Settings.Default.DBConnString))
