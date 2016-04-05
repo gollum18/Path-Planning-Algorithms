@@ -55,6 +55,7 @@ namespace Path_Planning_Algorithms
             Stats[] stats = new Stats[4];
             Task[] tasks = new Task[4];
             DateTime now = DateTime.Now;
+            TaskFactory factory = new TaskFactory();
 
             maps = GetMaps(amt, per);
 
@@ -72,8 +73,8 @@ namespace Path_Planning_Algorithms
             {
                 task.Start();
             }
-
-            await Task.WhenAll(tasks);
+                
+            Task.WaitAll(tasks);
 
             Console.WriteLine();
             Console.WriteLine();
@@ -87,6 +88,8 @@ namespace Path_Planning_Algorithms
             stats = null;
             tasks = null;
             GC.Collect();
+
+            Console.ReadLine();
         }
 
         public static Map[] GetMaps(int amt, double per)
