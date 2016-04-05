@@ -6,6 +6,7 @@ using System.Linq;
 using Path_Planning_Algorithms.Maps;
 using Path_Planning_Algorithms.Algorithms;
 using static Path_Planning_Algorithms.Algorithms.Utility;
+using System.Collections.Generic;
 
 namespace Path_Planning_Algorithms
 {
@@ -73,7 +74,7 @@ namespace Path_Planning_Algorithms
             {
                 task.Start();
             }
-                
+            
             Task.WaitAll(tasks);
 
             Console.WriteLine();
@@ -84,12 +85,71 @@ namespace Path_Planning_Algorithms
             Console.WriteLine(stats[2].ToString());
             Console.WriteLine(stats[3].ToString());
 
+            //Calculate the T-Scores
+            List<double> aList = new List<double>(4);
+            List<double> tList = new List<double>(4);
+
+            aList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[0].Lengths, stats[1].Lengths), 2));
+            aList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[0].Headings, stats[1].Headings), 2));
+            aList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[0].Degrees, stats[1].Degrees), 2));
+            aList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[0].Times, stats[1].Times), 2));
+
+            tList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[2].Lengths, stats[3].Lengths), 2));
+            tList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[2].Headings, stats[3].Headings), 2));
+            tList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[2].Degrees, stats[3].Degrees), 2));
+            tList.Add(Math.Round(Stats.RepeatedMeasuresTScore(stats[2].Times, stats[3].Times), 2));
+
+            for (int i = 0; i < 4; i++)
+            {
+                Console.WriteLine($"{GetTHeading(i)}, A*/A*PS: {aList[i]}");
+                Console.WriteLine($"{GetTHeading(i)}, Theta*/S-Theta*: {tList[i]}");
+            }
+
+            WriteData(stats, aList, tList, per);
+
             maps = null;
             stats = null;
             tasks = null;
             GC.Collect();
 
             Console.ReadLine();
+        }
+
+        private static void WriteData(Stats[] stats, List<double> aList, List<double> tList, double per)
+        {
+            using (StreamWriter writer = new StreamWriter($"TraversalTestResults_{per*100}%.csv"))
+            {
+                writer.WriteLine(Stats.GetCSVHeader());
+                for (int i = 0; i < stats.Count(); i++)
+                {
+                    writer.WriteLine(stats[i].GetCSV());
+                }
+            }
+
+            using (StreamWriter writer = new StreamWriter($"T-TestResults_{per * 100}%.txt"))
+            {
+                for (int i = 0; i < aList.Count; i++) {
+                    writer.WriteLine($"{GetTHeading(i)}, A*/A*PS: {aList[i]}");
+                    writer.WriteLine($"{GetTHeading(i)}, Theta*/S-Theta*: {tList[i]}");
+                }
+            }
+        }
+
+        private static string GetTHeading(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return "T-Score For Length";
+                case 1:
+                    return "T-Score For Heading Changes";
+                case 2:
+                    return "T-Score For Degrees";
+                case 3:
+                    return "T-Score For Traversal Time";
+                default:
+                    return "";
+            }
         }
 
         public static Map[] GetMaps(int amt, double per)

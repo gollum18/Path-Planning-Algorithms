@@ -141,7 +141,8 @@ namespace Path_Planning_Algorithms.Algorithms
         /// <returns>T-Score for the repeated measure.</returns>
         public static double RepeatedMeasuresTScore(List<double> beforeScores, List<double> afterScores)
         {
-            if (beforeScores.Count != afterScores.Count)
+            if (beforeScores.Count == 0 || afterScores.Count == 0 || 
+                beforeScores.Count != afterScores.Count)
             {
                 throw new ArgumentException("ERROR: Statistical lists do not contain the same amount of samples!");
             }
@@ -238,7 +239,7 @@ namespace Path_Planning_Algorithms.Algorithms
             }
         }
 
-        public static String GetCSVHeader()
+        public static string GetCSVHeader()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -250,7 +251,7 @@ namespace Path_Planning_Algorithms.Algorithms
             return sb.ToString();
         }
 
-        public String GetCSVBody()
+        public string GetCSV()
         {
             StringBuilder sb = new StringBuilder();
 
