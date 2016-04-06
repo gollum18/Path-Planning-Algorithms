@@ -148,7 +148,7 @@ namespace Path_Planning_Algorithms.Algorithms
             }
 
             /**
-            * Variable Definitions:
+              Variable Definitions:
                 M: Mean of the Difference Scores.
                 SS: Sum of Squared Difference Scores.
                 S2: The estimated population variance.
@@ -156,16 +156,24 @@ namespace Path_Planning_Algorithms.Algorithms
                 SM: The estimated standard deviation of the distribution of means
             **/
             double M = 0, SS = 0, S2 = 0, S2M = 0, SM = 0;
+            List<double> diffScores = new List<double>(beforeScores.Count);
 
-            //Step One: Calculate SS
+            //Step One: Calculate M and SS
             for (int i = 0; i < beforeScores.Count; i++)
             {
-                M += (beforeScores[i] - afterScores[i]);
-                SS += Math.Pow((beforeScores[i] - afterScores[i]), 2);
+                //Add the difference score to the mean
+                M += afterScores[i] - beforeScores[i];
+
+                //add the difference score to the list of difference scores
+                diffScores.Add(afterScores[i] - beforeScores[i]);
             }
 
-            //Pre-Step: Calculate M
             M /= beforeScores.Count;
+
+            foreach (double diff in diffScores)
+            {
+                SS += Math.Pow((diff - M), 2);
+            }
 
             //Step Two: Calculate S2
             S2 = SS / (beforeScores.Count - 1);
