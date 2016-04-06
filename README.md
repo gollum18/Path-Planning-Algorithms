@@ -8,7 +8,7 @@ This is a replication I performed of the article "A Statiscally Rigorous Compari
 |Windows 10 Pro 64-Bit|Intel i7 4710HQ|8GB DDR3 1600Mhz|Visual Studio Community 2015|
 
 ##Results of Replication
-The results are hosted on OneDrive at this link: https://goo.gl/0745N5
+The Results of this replication are found in the root folder of this repository "Results.xlsx".
 
 ##DOI for above article
 DOI: http://dx.doi.org/10.1093/comjnl/bxu137
