@@ -1,4 +1,23 @@
-﻿using Path_Planning_Algorithms.Algorithms;
+﻿/**Copyright(C) 2016 Christen Ford
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.If not, see<http://www.gnu.org/licenses/>.
+
+    For more information regarding this program or the author, please email him at
+    <cford15@mail.bw.edu> or by mail to Baldwin-Wallace University, Berea OH.
+**/
+
+using Path_Planning_Algorithms.Algorithms;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +26,10 @@ using static Path_Planning_Algorithms.Algorithms.Geometry;
 
 namespace Path_Planning_Algorithms.Maps
 {
-    public class Map : ICloneable
+    /// <summary>
+    /// Stores map data for a map.
+    /// </summary>
+    public class Map : ICloneable, IDisposable
     {
         public static readonly double[] PERCENTAGES = {
             .05,
@@ -17,7 +39,17 @@ namespace Path_Planning_Algorithms.Maps
             .50
         };
 
-        private Map(int cols, int rows, double per, 
+        public State[,] Cells { get; private set; }
+        public int Columns { get { return Cells.GetLength(0); } }
+        public int Rows { get { return Cells.GetLength(1); } }
+        public int ObstacleColumns { get; private set; }
+        public int ObstacleRows { get; private set; }
+        public double Percentage { get; private set; }
+        public double Trajectory { get; private set; }
+        public Cell Start { get; set; }
+        public Cell Finish { get; set; }
+
+        private Map(int cols, int rows, double per,
             int obsCols, int obsRows)
         {
             if (cols > 0 && rows > 0 && per > 0 && per <= .50 && obsCols > 0 && obsRows > 0)
@@ -41,17 +73,41 @@ namespace Path_Planning_Algorithms.Maps
             Cells = map;
         }
 
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Start = null;
+                    Finish = null;
+                }
 
-        public State[,] Cells { get; private set; }
-        public int Columns { get { return Cells.GetLength(0); } }
-        public int Rows { get { return Cells.GetLength(1); } }
-        public int ObstacleColumns { get; private set; }
-        public int ObstacleRows { get; private set; }
-        public double Percentage { get; private set; }
-        public double Trajectory { get; private set; }
-        public Cell Start { get; set; }
-        public Cell Finish { get; set; }
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                Cells = null;
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Map() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
 
         private void intialize()
         {

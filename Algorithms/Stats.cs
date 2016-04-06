@@ -1,4 +1,23 @@
-﻿using System;
+﻿/**Copyright(C) 2016 Christen Ford
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.If not, see<http://www.gnu.org/licenses/>.
+
+    For more information regarding this program or the author, please email him at
+    <cford15@mail.bw.edu> or by mail to Baldwin-Wallace University, Berea OH.
+**/
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -12,7 +31,7 @@ using MathNet.Numerics.Statistics;
 
 namespace Path_Planning_Algorithms.Algorithms
 {
-    public class Stats : ICloneable
+    public class Stats : ICloneable, IDisposable
     {
         public AgentType Type { get; private set; }
         public Map[] Maps { get; private set; }
@@ -66,10 +85,48 @@ namespace Path_Planning_Algorithms.Algorithms
             Now = now;
         }
 
-        internal void ThreadPoolCallback(object state)
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
         {
-            CalcStats();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Lengths = null;
+                    Headings = null;
+                    Degrees = null;
+                    Times = null;
+                    CI_Degree = null;
+                    CI_Heading = null;
+                    CI_Length = null;
+                    CI_Time = null;
+                    ResetEvent = null;
+                    Agents = null;
+                }
+                
+                Maps = null;
+
+                disposedValue = true;
+            }
         }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Stats() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        //}
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
 
         public void CalcStats()
         {
@@ -335,5 +392,7 @@ namespace Path_Planning_Algorithms.Algorithms
 
             return stats;
         }
+
+        
     }
 }

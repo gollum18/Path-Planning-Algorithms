@@ -1,4 +1,23 @@
-﻿using System;
+﻿/**Copyright(C) 2016 Christen Ford
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.If not, see<http://www.gnu.org/licenses/>.
+
+    For more information regarding this program or the author, please email him at
+    <cford15@mail.bw.edu> or by mail to Baldwin-Wallace University, Berea OH.
+**/
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
@@ -25,12 +44,12 @@ namespace Path_Planning_Algorithms.Algorithms
         public AgentType AgentType { get; private set; }
 
         /// <summary>
-        /// Contains the nodes waiting to be evaluated by this agents traversal method.
+        /// Contains the cells waiting to be evaluated by this agents traversal method.
         /// </summary>
         private PriorityQueue<Cell> OpenList { get; set; }
 
         /// <summary>
-        /// Contains the nodes already evaluated by this agents traversal method.
+        /// Contains the cells already evaluated by this agents traversal method.
         /// </summary>
         private List<Cell> ClosedList { get; set; }
 
@@ -126,10 +145,10 @@ namespace Path_Planning_Algorithms.Algorithms
                 //Get the min and remove it from the list
                 current = OpenList.Dequeue();
 
-                //Loop until the current node equals the finish node
+                //Loop until the current cell equals the finish cell
                 if (current.Equals(finish))
                 {
-                    //If we are at the finish node, stop the traversal and return true
+                    //If we are at the finish cell, stop the traversal and return true
                     ClosedList.Add(current);
                     Path = Map.generatePath(ClosedList);
                     if (AgentType == AgentType.ASTARPS)
@@ -143,7 +162,7 @@ namespace Path_Planning_Algorithms.Algorithms
                     return true;
                 }
 
-                ///Add the current node to the closed list to indicate we have visited it
+                ///Add the current cell to the closed list to indicate we have visited it
                 ClosedList.Add(current);
 
                 //For each neighbor of the current cell...
@@ -178,30 +197,41 @@ namespace Path_Planning_Algorithms.Algorithms
         /// <remarks>This should only be run after the path has been generated.</remarks>
         private void PostSmooth()
         {
+            //First make sure the agent is astarps
             if (AgentType != AgentType.ASTARPS)
             {
+                //if it is not, let the user know
                 throw new Exception("ERROR: The agent type must be ASTARPS to post smooth the map!");
             }
 
+            //Initialize the current cell to the finish cell, IFF the path contains it.
             Cell current = Path.Find(Map.Finish.Equals);
 
+            //Check to see if the finish cell was found in the path
             if (current == null)
             {
+                //If it was not, let the user know.
                 throw new Exception("ERROR: Unable to find the finish cell in the path!");
             }
 
             Cell temp = null;
 
+            //While the parent of the current cell is not the start cell...
             while (!current.Parent.Equals(Map.Start))
             {
+                //If the current cell has lineofsight to its grandparent...
                 if (Map.LineOfSight(current, current.Parent.Parent))
                 {
+                    //Set the temp var to the parent
                     temp = current.Parent;
+                    //Set the current nodes parent to the grandparent
                     current.Parent = temp.Parent;
+                    //Remove the temp var from the path
                     Path.Remove(temp);
                 }
-                else
+                else //Otherwise...
                 {
+                    //Set the current node to the parent
                     current = current.Parent;
                 }
             }
@@ -210,6 +240,9 @@ namespace Path_Planning_Algorithms.Algorithms
             Map.RedrawPath(Path);
         }
 
+        /// <summary>
+        /// This method generates the statistics for this agent.
+        /// </summary>
         private void GenerateStatistics()
         {
             //First check if the path is null or empty
@@ -220,13 +253,13 @@ namespace Path_Planning_Algorithms.Algorithms
             }
 
             //Otherwise begin generation of the statistics
-            //Get the last node in the graph
+            //Get the last cell in the graph
             Cell current = Path.Find(Map.Finish.Equals);
 
             double slopeAToC = 0;
             double slopeBToC = 0;
 
-            //Check to see if the node is not null and has a parent
+            //Check to see if the cell is not null and has a parent
             if (!current.Equals(null))
             {
                 if (!current.Parent.Equals(null))
@@ -248,7 +281,7 @@ namespace Path_Planning_Algorithms.Algorithms
                             //Calculate the angle of the change
                             double angle = LawOfCosines(Angle.C,
                                 current.Parent.Parent, current, current.Parent);
-
+                            
                             Degrees += ToDegrees(UnitCircleMeasure(angle));
 
                             //Increment the heading changes counter
@@ -264,26 +297,36 @@ namespace Path_Planning_Algorithms.Algorithms
                 }
                 else
                 {
-                    throw new Exception("ERROR! The finish node has no traceable parent!");
+                    throw new Exception("ERROR! The finish cell has no traceable parent!");
                 }
             }
             else
             {
-                throw new Exception("ERROR: Unable to find the finish node in the path!");
+                throw new Exception("ERROR: Unable to find the finish cell in the path!");
             }
         }
 
+        /// <summary>
+        /// Updates a cell in the graph with it's appropriate values.
+        /// </summary>
+        /// <param name="current">The current cell being evaluated.</param>
+        /// <param name="next">The next potential cell in the path.</param>
         private void updateVertex(Cell current, Cell next)
         {
+            //Copy the old g-score of the next cell, should usually be int.MAX_VALUE
             double gOld = next.G_Score;
             ComputeCosts(current, next);
 
+            //If the new g-score is lower than the copy
             if (next.G_Score < gOld)
             {
+                //Remove all copies of this cell from the open list
                 OpenList.RemoveAll(next.Equals);
 
+                //If the open list is not empty
                 if (OpenList.Count != 0)
                 {
+                    //Break any ties we may have with this cell and the first cell on the open list
                     if (AgentType == AgentType.ASTAR || AgentType == AgentType.ASTARPS)
                     {
                         if (OpenList.Peek().F_Score == next.F_Score)
@@ -300,26 +343,37 @@ namespace Path_Planning_Algorithms.Algorithms
                     }
                 }
 
+                //Add the next cell to the open list
                 OpenList.Add(next);
             }
         }
 
+        /// <summary>
+        /// Computes the costs associated with the next potential cell.
+        /// </summary>
+        /// <param name="current">The current cell being evaluated.</param>
+        /// <param name="next">The next potential cell in the open list.</param>
         private void ComputeCosts(Cell current, Cell next)
         {
+            //First determine what agent type we are, directional or any-angle.
             if (AgentType == AgentType.ASTAR || AgentType == AgentType.ASTARPS)
             {
+                //If the total cost so far + the cost of moving from the current cell is less than the next cells g-score
                 if (current.G_Score + GetMovementCost(current, next) < next.G_Score)
                 {
+                    //Set the scores appropriately, using octile distance for the h-score since this is a directional algorithm
                     next.G_Score = current.G_Score + GetMovementCost(current, next);
                     next.H_Score = OctileDistance(next, Map.Finish);
                     next.F_Score = next.G_Score + next.H_Score;
                     next.Parent = current;
                 }
             }
-            else
+            else //Otherwise we are working with an any-angle algorithm, the computation changes some
             {
+                //If the next cell can see its grandparent, meaning its sight is not blocked by an obstacle
                 if (Map.LineOfSight(current.Parent, next))
                 {
+                    //Substitute in the grandparent for in place of the current cell
                     if (current.Parent.G_Score + GetMovementCost(current.Parent, next) < next.G_Score)
                     {
                         next.G_Score = current.Parent.G_Score + GetMovementCost(current.Parent, next);
@@ -330,6 +384,7 @@ namespace Path_Planning_Algorithms.Algorithms
                 }
                 else
                 {
+                    //Otherwise do the same thing as the directional algorithms
                     if (current.G_Score + GetMovementCost(current, next) < next.G_Score)
                     {
                         next.G_Score = current.G_Score + GetMovementCost(current, next);
@@ -341,24 +396,46 @@ namespace Path_Planning_Algorithms.Algorithms
             }
         }
 
+        /// <summary>
+        /// Computes beta for the S-Theta* algorithm. This implementation utilizes the law of cosines to do so.
+        /// </summary>
+        /// <param name="A">The finish cell.</param>
+        /// <param name="B">The next possible cell.</param>
+        /// <param name="C">The cell found at (next.X, Finish.Y).</param>
+        /// <returns>Beta.</returns>
         private double ComputeBeta(Cell A, Cell B, Cell C) =>
             Math.Abs(Map.Trajectory - ToDegrees(UnitCircleMeasure(LawOfCosines(Angle.A, A, B, C))));
 
+        /// <summary>
+        /// Calculates the movement cost associated with moving to the next cell.
+        /// </summary>
+        /// <param name="current">The current cell being evaluated.</param>
+        /// <param name="next">The next possible cell.</param>
+        /// <returns>If the slope from the current cell to the next cell is 0, than 1.0 otherwise 1.4.</returns>
         private double GetMovementCost(Cell current, Cell next) =>
             Slope(current, next) == 0 ? 1.0d : 1.4d;
 
+        /// <summary>
+        /// Generates the neighbors for the current cell.
+        /// </summary>
+        /// <param name="current">The current cell being evaluated.</param>
+        /// <returns>List containing all the neighbors for the current cell, the list can contain up to eight neighbors.</returns>
         private List<Cell> GenerateNeighbors(Cell current)
         {
+            //initialize the list with a max of 8 cells.
             List<Cell> l = new List<Cell>(8);
 
+            //Go through all the possible neighbors
             for (int x = -1; x <= 1; x++)
             {
                 for (int y = -1; y <= 1; y++)
                 {
+                    //If the xdiff and ydiff are both 0, skip this neighbor as it is the current cell.
                     if (x == 0 && y == 0)
                     {
                         continue;
                     }
+                    //Otherwise as long as it is a valid cell, add it to the neighbor list.
                     else if (Map.IsValidCell(current.X + x, current.Y + y))
                     {
                         l.Add(new Cell(current.X + x, current.Y + y));
@@ -366,55 +443,78 @@ namespace Path_Planning_Algorithms.Algorithms
                 }
             }
 
+            //Return the neighbor list
             return l;
         }
 
+        /// <summary>
+        /// Breaks ties involving a directional algorithm, utilizing the F-Score for comparison.
+        /// </summary>
+        /// <param name="c1">The first cell.</param>
+        /// <param name="c2">The second cell.</param>
         private void BreakAStarTie(Cell c1, Cell c2)
         {
+            //If the first cell has a lower h-score than the second cell
             if (c1.H_Score < c2.H_Score)
             {
-                c1.F_Score = (c1.F_Score * .9999f);
+                //Break the tie using the first cell
+                c1.F_Score *= .9999f;
             }
             else if (c2.H_Score < c1.H_Score)
             {
-                c2.F_Score = (c2.F_Score * .9999f);
+                //Break the tie using the second cell
+                c2.F_Score *= .9999f;
             }
-            else {
+            else { //Otherwise if c1 and c2 have the same h-score
+                //Randomly select the next cell to break the tie with
                 Random r = new Random();
                 if (r.Next(2) == 0)
                 {
-                    c1.F_Score = (c1.F_Score * .9999f);
+                    c1.F_Score *= .9999f;
                 }
                 else {
-                    c2.F_Score = (c2.F_Score * .9999f);
+                    c2.F_Score *= .9999f;
                 }
                 r = null;
             }
         }
 
+        /// <summary>
+        /// Breaks ties involving any-angle algorithms, utilizing the G-Score for comparison.
+        /// </summary>
+        /// <param name="c1">The first cell.</param>
+        /// <param name="c2">The second cell.</param>
         private void BreakThetaStarTie(Cell c1, Cell c2)
         {
+            //If the first cell has a lower g-score...
             if (c1.G_Score < c2.G_Score)
             {
-                c1.F_Score = (c1.F_Score * .9999f);
+                //Break the tie using the first cells f-score
+                c1.F_Score *= .9999f;
             }
             else if (c2.G_Score < c1.G_Score)
             {
-                c2.F_Score = (c2.F_Score * .9999f);
+                //Break the tie using the second cells f-score
+                c2.F_Score *= .9999f;
             }
-            else {
+            else { //Otherwise the two g-scores are equal
+                //Select a random cell to break.
                 Random r = new Random();
                 if (r.Next(2) == 0)
                 {
-                    c1.F_Score = (c1.F_Score * .9999f);
+                    c1.F_Score *= .9999f;
                 }
                 else {
-                    c2.F_Score = (c2.F_Score * .9999f);
+                    c2.F_Score *= .9999f;
                 }
                 r = null;
             }
         }
 
+        /// <summary>
+        /// Prints out information related to the agent.
+        /// </summary>
+        /// <returns>String containing agent information.</returns>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -429,6 +529,10 @@ namespace Path_Planning_Algorithms.Algorithms
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Creates a deep copy of this agent.
+        /// </summary>
+        /// <returns>Deep copy of this agent.</returns>
         public object Clone()
         {
             Agent clone = new Agent();
